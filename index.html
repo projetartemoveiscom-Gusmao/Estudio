@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voz & Criação Studio AI</title>
+    <meta name="description" content="Estúdio criativo completo com conversão de texto em voz realista (TTS), geração de imagens em alta resolução (1K/2K/4K) e assistente inteligente Gemini multitarefas." />
+    <meta property="og:title" content="Voz & Criação Studio AI" />
+    <meta property="og:description" content="Estúdio criativo completo com conversão de texto em voz realista (TTS), geração de imagens em alta resolução (1K/2K/4K) e assistente inteligente Gemini multitarefas." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+      (function() {
+        // 1. Safeguard against third-party extensions trying to set window.fetch
+        try {
+          var originalFetch = window.fetch;
+          var activeFetch = originalFetch;
+          Object.defineProperty(window, 'fetch', {
+            configurable: true,
+            enumerable: true,
+            get: function() {
+              return activeFetch;
+            },
+            set: function(newFetch) {
+              activeFetch = newFetch;
+            }
+          });
+        } catch (e) {}
+
+        // 2. Intercept Vite HMR WebSocket in AI Studio preview environment
+        // Since HMR is intentionally disabled in AI Studio, prevent @vite/client from failing
+        try {
+          var NativeWebSocket = window.WebSocket;
+          if (NativeWebSocket) {
+            window.WebSocket = function(url, protocols) {
+              var isViteHmr =
+                protocols === 'vite-hmr' ||
+                protocols === 'vite-ping' ||
+                (Array.isArray(protocols) && (protocols.indexOf('vite-hmr') !== -1 || protocols.indexOf('vite-ping') !== -1)) ||
+                (typeof url === 'string' && (url.indexOf('token=') !== -1 || url.indexOf('vite') !== -1));
+
+              if (isViteHmr) {
+                var target = new EventTarget();
+                var mockWs = {
+                  readyState: 0,
+                  CONNECTING: 0,
+                  OPEN: 1,
+                  CLOSING: 2,
+                  CLOSED: 3,
+                  url: String(url),
+                  protocol: typeof protocols === 'string' ? protocols : 'vite-hmr',
+                  extensions: '',
+                  bufferedAmount: 0,
+                  binaryType: 'blob',
+                  onopen: null,
+                  onclose: null,
+                  onmessage: null,
+                  onerror: null,
+                  addEventListener: function(type, listener, options) {
+                    target.addEventListener(type, listener, options);
+                  },
+                  removeEventListener: function(type, listener, options) {
+                    target.removeEventListener(type, listener, options);
+                  },
+                  dispatchEvent: function(event) {
+                    return target.dispatchEvent(event);
+                  },
+                  send: function() {},
+                  close: function() {
+                    mockWs.readyState = 3;
+                    var closeEvent = new Event('close');
+                    if (mockWs.onclose) mockWs.onclose(closeEvent);
+                    target.dispatchEvent(closeEvent);
+                  }
+                };
+
+                setTimeout(function() {
+                  mockWs.readyState = 1;
+                  var openEvent = new Event('open');
+                  if (mockWs.onopen) mockWs.onopen(openEvent);
+                  target.dispatchEvent(openEvent);
+                }, 15);
+
+                return mockWs;
+              }
+
+              return new NativeWebSocket(url, protocols);
+            };
+            window.WebSocket.prototype = NativeWebSocket.prototype;
+          }
+        } catch (e) {}
+
+        // 3. Filter Vite client console errors & unhandled rejections
+        var origConsoleError = console.error;
+        console.error = function() {
+          var arg0 = arguments[0];
+          var str = typeof arg0 === 'string' ? arg0 : (arg0 && arg0.message ? String(arg0.message) : '');
+          if (
+            str.indexOf('[vite]') !== -1 ||
+            str.indexOf('WebSocket') !== -1 ||
+            str.indexOf('websocket') !== -1 ||
+            str.indexOf('fechado sem ter sido aberto') !== -1 ||
+            str.indexOf('closed without opened') !== -1
+          ) {
+            return;
+          }
+          return origConsoleError.apply(console, arguments);
+        };
+
+        window.addEventListener('error', function(event) {
+          var msg = (event && event.message) ? String(event.message) : '';
+          if (
+            msg.indexOf('fetch') !== -1 ||
+            msg.indexOf('WebSocket') !== -1 ||
+            msg.indexOf('websocket') !== -1 ||
+            msg.indexOf('fechado') !== -1 ||
+            msg.indexOf('closed without opened') !== -1
+          ) {
+            if (event.preventDefault) event.preventDefault();
+            if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+            return true;
+          }
+        }, true);
+
+        window.addEventListener('unhandledrejection', function(event) {
+          var reason = event && event.reason;
+          var msg = reason ? (reason.message ? String(reason.message) : String(reason)) : '';
+          if (
+            msg.indexOf('WebSocket') !== -1 ||
+            msg.indexOf('websocket') !== -1 ||
+            msg.indexOf('fechado') !== -1 ||
+            msg.indexOf('closed without opened') !== -1 ||
+            msg.indexOf('fetch') !== -1
+          ) {
+            if (event.preventDefault) event.preventDefault();
+            if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+            return true;
+          }
+        }, true);
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

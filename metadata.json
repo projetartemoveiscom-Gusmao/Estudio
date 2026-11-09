@@ -1,0 +1,6 @@
+{
+  "name": "Voz & Criação Studio AI",
+  "description": "Estúdio criativo completo com conversão de texto em voz realista (TTS), geração de imagens em alta resolução (1K/2K/4K) e assistente inteligente Gemini multitarefas.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
